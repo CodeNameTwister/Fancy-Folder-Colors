@@ -11,3 +11,7 @@ Allows you to choose a custom color for folders. *(also works with files)*
 In the godot file system, press RMB (right click) on any folder/file you want to **colorize** and select **Custom Color** from the menu.
 
 ![image](https://github.com/user-attachments/assets/43e1c972-f5c9-4bf6-a4f3-47e39b9eb224)
+
+Copyrights (c) CodeNameTwister. See [LICENSE](LICENSE) for details.
+
+[godot engine]: https://godotengine.org/
