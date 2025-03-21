@@ -178,7 +178,7 @@ func _exit_tree() -> void:
 	#region user_dat
 	var cfg : ConfigFile = ConfigFile.new()
 	for k : String in _buffer.keys():
-		if !DirAccess.dir_exists_absolute(k):
+		if !DirAccess.dir_exists_absolute(k) and !FileAccess.file_exists(k):
 			_buffer.erase(k)
 			continue
 	cfg.set_value("DAT", "PTH", _buffer)
