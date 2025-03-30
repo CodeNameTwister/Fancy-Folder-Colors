@@ -1,13 +1,12 @@
 @tool
 extends EditorContextMenuPlugin
-#{
-	#"type": "plugin",
-	#"codeRepository": "https://github.com/CodeNameTwister",
-	#"description": "Fancy Folder Colors addon for godot 4",
-	#"license": "https://spdx.org/licenses/MIT",
-	#"name": "Twister",
-	#"version": "1.0.0"
-#}
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#	Fancy Folder Colors
+#
+#	https://github.com/CodeNameTwister/Fancy-Folder-Icons
+#	author:	"Twister"
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 #region godotengine_repository_icons
 const ICON : Texture = preload("res://addons/fancy_folder_colors/ColorPick.svg")
 #endregion

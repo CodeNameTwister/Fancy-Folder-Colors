@@ -1,13 +1,11 @@
 @tool
 extends EditorPlugin
-#{
-	#"type": "plugin",
-	#"codeRepository": "https://github.com/CodeNameTwister",
-	#"description": "Fancy Folder Colors addon for godot 4",
-	#"license": "https://spdx.org/licenses/MIT",
-	#"name": "Twister",
-	#"version": "1.0.0.1"
-#}
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+ #	Fancy Folder Colors
+ #
+ #	https://github.com/CodeNameTwister/Fancy-Folder-Icons
+ #	author:	"Twister"
+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 const DOT_USER : String = "user://editor/fancy_folder_colors.dat"
 
 var _buffer : Dictionary = {}

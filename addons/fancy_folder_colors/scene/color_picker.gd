@@ -1,14 +1,12 @@
 @tool
 @icon("res://addons/fancy_folder_colors/images/icon.svg")
 extends Window
-#{
-	#"type": "plugin",
-	#"codeRepository": "https://github.com/CodeNameTwister",
-	#"description": "Fancy Folder Colors addon for godot 4",
-	#"license": "https://spdx.org/licenses/MIT",
-	#"name": "Twister",
-	#"version": "1.0.0"
-#}
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#	Fancy Folder Colors
+#
+#	https://github.com/CodeNameTwister/Fancy-Folder-Icons
+#	author:	"Twister"
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 signal confirmed()
 signal removed()
