@@ -5,7 +5,7 @@ Allows you to choose a custom color for folders. *(also works with files)*
 
 [![Godot Engine 4.3](https://img.shields.io/badge/Godot_Engine-4.x-blue)](https://godotengine.org/) ![ToolHack](https://img.shields.io/badge/Tool-Addon-green) ![Copyrights License](https://img.shields.io/badge/License-MIT-blue)
 
-![Icon](addons/fancy_folder_colors/images/icon.svg)
+![Icon](images/icon.png)
 
 # Preview
 ![image](images/img0.png)
