@@ -19,6 +19,8 @@ var _popup : Window = null
 var _tchild : TreeItem = null
 var _tdelta : int = 0
 
+var _ref_buffer : Dictionary[Variant, TreeItem] = {}
+
 func _setup() -> void:
 	var dir : String = DOT_USER.get_base_dir()
 	if !DirAccess.dir_exists_absolute(dir):
@@ -44,18 +46,134 @@ func _remove_callback(path : String) -> void:
 func _def_update() -> void:
 	update.call_deferred()
 
+#func update() -> void:
+	#if _buffer.size() == 0:return
+	#if _busy:return
+	#_busy = true
+	#var root : TreeItem = _tree.get_root()
+	#var item : TreeItem = root.get_first_child()
+#
+	#while null != item and item.get_metadata(0) != "res://":
+		#item = item.get_next()
+	#_flg_totals = 0
+#
+	#_explore(item)
+	#set_deferred(&"_busy", false)
+#
+
+func _update_draw(x : Variant) -> void:
+	for __ : int in range(2):
+		var tree : SceneTree = get_tree()
+		if !is_instance_valid(tree):
+			return
+		await tree.process_frame
+			
+		if is_instance_valid(x):
+			if x is Tree:
+				var _root: TreeItem = x.get_root()
+				if _root != null:
+					var child : TreeItem = _root.get_first_child()
+					if child == null:
+						return
+					if _ref_buffer.has(x) and _ref_buffer[x] == child:
+						return
+					_ref_buffer[x] = child
+					var value : Variant = _root.get_metadata(0)
+					if value == null:
+						if child:
+							value = child.get_metadata(0)
+							if value is String and (value == "Favorites" or DirAccess.dir_exists_absolute(value) or FileAccess.file_exists(value)):
+								_explore(_root)
+								return
+					elif value is String:
+						if FileAccess.file_exists(value):
+							_explore(_root)
+					elif value is RefCounted:
+						if value.get(&"_saved_path") is String:
+							_tabby_explore(_root)
+
+func _is_tabby(tree : Tree, root : TreeItem) -> bool:
+	var meta : Variant = root.get_metadata(0)
+	if meta is RefCounted:
+		if meta.get(&"_saved_path") is String:
+			if !tree.draw.is_connected(_update_draw):
+				tree.draw.connect(_update_draw.bind(tree))
+			return true
+	return false
+
+func _tabby_explore(item : TreeItem, color : Color = Color.WHITE, alpha : float = 1.0) -> void:
+	var meta : Variant = item.get_metadata(0)
+	if meta is RefCounted:
+		meta = meta.get(&"_saved_path")
+		if meta is String:
+			if _buffer.has(meta):
+				color = _buffer[meta]
+				alpha = 0.15
+
+			if alpha != 1.0:
+				var bg_color : Color = color
+				bg_color.a = alpha
+				item.set_custom_bg_color(0, bg_color)
+				if alpha == 0.15 or !FileAccess.file_exists(meta):
+					item.set_icon_modulate(0, color)
+				alpha = 0.1
+
+			for i : TreeItem in item.get_children():
+				_tabby_explore(i, color, alpha)
+
 func update() -> void:
-	if _buffer.size() == 0:return
-	if _busy:return
+	if _busy or _buffer.size() == 0 or _tree == null:
+		return
 	_busy = true
-	var root : TreeItem = _tree.get_root()
-	var item : TreeItem = root.get_first_child()
-
-	while null != item and item.get_metadata(0) != "res://":
-		item = item.get_next()
-	_flg_totals = 0
-
-	_explore(item)
+	for x : Variant in _ref_buffer.keys():
+		if !is_instance_valid(x):
+			_ref_buffer.erase(x)
+			continue
+		if x is Tree:
+			var _root: TreeItem = x.get_root()
+			if _root != null:
+				var child : TreeItem = _root.get_first_child()
+				if child == null:
+					continue
+				var value : Variant = _root.get_metadata(0)
+				if value == null:
+					if child:
+						value = child.get_metadata(0)
+						if value is String and (value == "Favorites" or DirAccess.dir_exists_absolute(value) or FileAccess.file_exists(value)):
+							if !x.draw.is_connected(_update_draw):
+								x.draw.connect(_update_draw.bind(x))
+							_update_draw(x)
+							continue
+				elif value is String:
+					if FileAccess.file_exists(value):
+						if !x.draw.is_connected(_update_draw):
+							x.draw.connect(_update_draw.bind(x))
+						_update_draw(x)
+						continue
+				elif value is RefCounted:
+					if value.get(&"_saved_path") is String:
+						if !x.draw.is_connected(_update_draw):
+							x.draw.connect(_update_draw.bind(x))
+						_update_draw(x)
+						continue
+		elif x is ItemList:
+			if !x.draw.is_connected(_update_draw):
+				x.draw.connect(_update_draw.bind(x))
+			if x.item_count > 0:
+				var m : Variant = x.get_item_metadata(0)
+				if m is String and (DirAccess.dir_exists_absolute(m) or FileAccess.file_exists(m)):
+					if !x.draw.is_connected(_update_draw):
+						x.draw.connect(_update_draw.bind(x))
+					_update_draw(x)
+				elif m is Dictionary and m.has("path"):
+					if !x.draw.is_connected(_update_draw):
+						x.draw.connect(_update_draw.bind(x))
+					_update_draw(x)
+				else:
+					if !x.draw.is_connected(_update_draw):
+						x.draw.connect(_update_draw.bind(x))
+			continue
+		
 	set_deferred(&"_busy", false)
 
 func _explore(item : TreeItem, color : Color = Color.WHITE, alpha : float = 1.0) -> void:
@@ -83,7 +201,16 @@ func _on_confirmed(paths : PackedStringArray) -> void:
 		var color : Color = _popup.get_color()
 		for p : String in paths:
 			_buffer[p] = color
-		_def_update()
+		for x : Variant in _ref_buffer.keys():
+			if !is_instance_valid(x):
+				_ref_buffer.erase(x)
+				continue
+			_ref_buffer[x] = null
+		#var e : EditorFileSystem = EditorInterface.get_resource_filesystem()
+		#if e:
+			#e.scan()
+		#else:
+		_def_update.call_deferred()
 
 func _on_removed(paths : PackedStringArray) -> void:
 	if is_instance_valid(_popup):
@@ -144,9 +271,21 @@ func _ready() -> void:
 	fs.filesystem_changed.connect(_def_update)
 
 	_def_update()
+	
+func _on_child(n : Node) -> void:
+	if n is Tree:
+		if !_ref_buffer.has(n):
+			_ref_buffer[n] = null
+			_def_update()
+	for x : Node in n.get_children():
+		_on_child(x)
 
 func _enter_tree() -> void:
 	_setup()
+	
+	var root : Node = get_tree().root
+	get_tree().node_added.connect(_on_child)
+	_on_child(root)
 
 	_menu_service = ResourceLoader.load("res://addons/fancy_folder_colors/menu_fancy.gd").new()
 	_menu_service.colorize_paths.connect(_on_colorize_paths)
@@ -157,7 +296,10 @@ func _exit_tree() -> void:
 
 	if is_instance_valid(_menu_service):
 		remove_context_menu_plugin(_menu_service)
-
+		
+	if get_tree().node_added.is_connected(_on_child):
+		get_tree().node_added.disconnect(_on_child)
+		
 	var dock : FileSystemDock = EditorInterface.get_file_system_dock()
 	var fs : EditorFileSystem = EditorInterface.get_resource_filesystem()
 	if dock.files_moved.is_connected(_moved_callback):
@@ -205,11 +347,3 @@ func _n(n : Node) -> bool:
 		if _n(x): return true
 	return false
 #endregion
-
-func _physics_process(_delta: float) -> void:
-	_tdelta += 1
-	if _tdelta > 60:
-		_tdelta = 0
-		if !is_instance_valid(_tchild):
-			_get_dummy_tree_node()
-			_def_update()
