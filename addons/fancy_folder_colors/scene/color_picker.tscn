@@ -1,19 +1,25 @@
-[gd_scene load_steps=5 format=3 uid="uid://cgdf8veovle7r"]
+[gd_scene load_steps=7 format=3 uid="uid://cgdf8veovle7r"]
 
 [ext_resource type="Script" uid="uid://colt6ke7lcirr" path="res://addons/fancy_folder_colors/scene/color_picker.gd" id="1_3ys24"]
+[ext_resource type="Shader" uid="uid://bcrqo67nwx4p7" path="res://addons/fancy_folder_colors/scene/color_picker.gdshader" id="2_y6el2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0a7rr"]
+shader = ExtResource("2_y6el2")
+shader_parameter/shift_speed = 0.25
+shader_parameter/shift_direction = Vector2(0, -1)
 
 [sub_resource type="Gradient" id="Gradient_3ys24"]
 interpolation_mode = 2
 interpolation_color_space = 1
-offsets = PackedFloat32Array(0, 0.5, 1)
-colors = PackedColorArray(0.2, 0, 0, 1, 0, 0.2, 0, 1, 0, 0, 0.2, 1)
+offsets = PackedFloat32Array(0, 0.3, 0.6, 1)
+colors = PackedColorArray(0.2, 0, 0, 1, 0, 0.2, 0, 1, 0, 0, 0.2, 1, 0.2, 0, 0, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_y6el2"]
 gradient = SubResource("Gradient_3ys24")
 width = 512
 height = 512
-fill_from = Vector2(0, 0.5)
-fill_to = Vector2(1, 0.5)
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0a7rr"]
 texture = SubResource("GradientTexture2D_y6el2")
@@ -25,6 +31,7 @@ size = Vector2i(443, 656)
 script = ExtResource("1_3ys24")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
+material = SubResource("ShaderMaterial_0a7rr")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

@@ -6,8 +6,7 @@ extends EditorPlugin
  #	https://github.com/CodeNameTwister/Fancy-Folder-Icons
  #	author:	"Twister"
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-const DOT_USER : String = "user://editor/fancy_folder_colors.dat"
-
+var DOT_USER : String = "res://addons/fancy_folder_colors/user/fancy_folder_colors.dat"
 var _buffer : Dictionary = {}
 var _flg_totals : int = 0
 var _tree : Tree = null
@@ -20,16 +19,44 @@ var _tchild : TreeItem = null
 var _tdelta : int = 0
 
 var _ref_buffer : Dictionary[Variant, TreeItem] = {}
-
-func _setup() -> void:
+	
+func _setup(load_buffer : bool = true) -> void:
 	var dir : String = DOT_USER.get_base_dir()
 	if !DirAccess.dir_exists_absolute(dir):
 		DirAccess.make_dir_recursive_absolute(dir)
 		return
-	if FileAccess.file_exists(DOT_USER):
+	if DOT_USER == "res://addons/fancy_folder_colors/user/fancy_folder_colors.dat":
+		#(?) Do not ignore a possible important folder.
+		if !FileAccess.file_exists(dir.path_join(".gdignore")):
+			var file : FileAccess = FileAccess.open(dir.path_join(".gdignore"), FileAccess.WRITE)
+			file.store_string("Fancy Folder Icons Saved Folder")
+			file.close()	
+		
+	if !load_buffer:
+		return
+		
+	if !FileAccess.file_exists(DOT_USER):
+		if FileAccess.file_exists("user://editor/fancy_folder_colors.dat"):
+			var cfg : ConfigFile = ConfigFile.new()
+			if OK != cfg.load("user://editor/fancy_folder_colors.dat"):return
+			_buffer = cfg.get_value("DAT", "PTH", {})
+			if _buffer.size() > 0 and _quick_save() == OK:
+					print("[Fancy Folder Icons] Loaded from old version, now is secure manual delete: ", ProjectSettings.globalize_path("user://editor/fancy_folder_colors.dat"))
+	else:
 		var cfg : ConfigFile = ConfigFile.new()
 		if OK != cfg.load(DOT_USER):return
 		_buffer = cfg.get_value("DAT", "PTH", {})
+
+func _quick_save() -> int:
+	var cfg : ConfigFile = ConfigFile.new()
+	var result : int = -1
+	if FileAccess.file_exists(DOT_USER):
+		cfg.load(DOT_USER)
+	cfg.set_value("DAT", "PTH", _buffer)
+	result = cfg.save(DOT_USER)
+	cfg = null
+	set_deferred(&"_is_saving" , false)
+	return result
 
 #region callbacks
 func _moved_callback(a : String, b : String ) -> void:
@@ -45,21 +72,6 @@ func _remove_callback(path : String) -> void:
 
 func _def_update() -> void:
 	update.call_deferred()
-
-#func update() -> void:
-	#if _buffer.size() == 0:return
-	#if _busy:return
-	#_busy = true
-	#var root : TreeItem = _tree.get_root()
-	#var item : TreeItem = root.get_first_child()
-#
-	#while null != item and item.get_metadata(0) != "res://":
-		#item = item.get_next()
-	#_flg_totals = 0
-#
-	#_explore(item)
-	#set_deferred(&"_busy", false)
-#
 
 func _update_draw(x : Variant) -> void:
 	for __ : int in range(2):
@@ -196,6 +208,32 @@ func _explore(item : TreeItem, color : Color = Color.WHITE, alpha : float = 1.0)
 func _on_visibility_changed() -> void:
 	_popup.update_state()
 
+
+func _on_changes() -> void:
+	var editor : EditorSettings = EditorInterface.get_editor_settings()
+	if editor:
+		var packed : PackedStringArray = editor.get_changed_settings()
+		if "plugin/fancy_folder_colors/save_location" in packed:
+			var new_path : String = editor.get_setting("plugin/fancy_folder_colors/save_location")		
+			if new_path.is_empty():
+				editor.set_setting("plugin/fancy_folder_colors/save_location", DOT_USER)
+			else:
+				DOT_USER = new_path
+			_setup(false)
+
+func _init() -> void:
+	var editor : EditorSettings = EditorInterface.get_editor_settings()
+	if editor:
+		if !editor.has_setting("plugin/fancy_folder_colors/save_location"):
+			editor.set_setting("plugin/fancy_folder_colors/save_location", DOT_USER)
+		else:
+			var new_path : String = editor.get_setting("plugin/fancy_folder_colors/save_location")		
+			if new_path.is_empty():
+				editor.set_setting("plugin/fancy_folder_colors/save_location", DOT_USER)
+			else:
+				DOT_USER = new_path
+		editor.settings_changed.connect(_on_changes)
+
 func _on_confirmed(paths : PackedStringArray) -> void:
 	if is_instance_valid(_popup):
 		var color : Color = _popup.get_color()
@@ -206,10 +244,7 @@ func _on_confirmed(paths : PackedStringArray) -> void:
 				_ref_buffer.erase(x)
 				continue
 			_ref_buffer[x] = null
-		#var e : EditorFileSystem = EditorInterface.get_resource_filesystem()
-		#if e:
-			#e.scan()
-		#else:
+		_quick_save()
 		_def_update.call_deferred()
 
 func _on_removed(paths : PackedStringArray) -> void:
