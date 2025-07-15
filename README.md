@@ -7,6 +7,9 @@ Allows you to choose a custom color for folders. *(also works with files)*
 
 ![Icon](addons/fancy_folder_colors/images/icon.svg)
 
+# Preview
+![image](images/img0.png)
+
 # How Work
 In the godot file system, press RMB (right click) on any folder/file you want to **colorize** and select **Custom Color** from the menu.
 
