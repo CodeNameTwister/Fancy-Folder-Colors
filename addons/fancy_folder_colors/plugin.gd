@@ -8,7 +8,6 @@ extends EditorPlugin
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 var DOT_USER : String = "res://addons/fancy_folder_colors/user/fancy_folder_colors.dat"
 var _buffer : Dictionary = {}
-var _flg_totals : int = 0
 var _tree : Tree = null
 var _busy : bool = false
 
@@ -16,7 +15,6 @@ var _menu_service : EditorContextMenuPlugin = null
 var _popup : Window = null
 
 var _tchild : TreeItem = null
-var _tdelta : int = 0
 
 var _ref_buffer : Dictionary[Variant, TreeItem] = {}
 	
@@ -59,11 +57,11 @@ func _quick_save() -> int:
 	return result
 
 #region callbacks
-func _moved_callback(a : String, b : String ) -> void:
-	if a != b:
-		if _buffer.has(a):
-			_buffer[b] = _buffer[a]
-			_buffer.erase(a)
+func _moved_callback(_a : String, _b : String ) -> void:
+	if _a != _b:
+		if _buffer.has(_a):
+			_buffer[_b] = _buffer[_a]
+			_buffer.erase(_a)
 
 func _remove_callback(path : String) -> void:
 	if _buffer.has(path):
@@ -103,6 +101,46 @@ func _update_draw(x : Variant) -> void:
 					elif value is RefCounted:
 						if value.get(&"_saved_path") is String:
 							_tabby_explore(_root)
+			elif x is ItemList:
+				if x.item_count > 0:
+					var tlp : String = x.get_item_tooltip(0)
+					if !tlp.ends_with("`"):
+						x.set_item_tooltip(0, tlp + "`")
+						var m : Variant = x.get_item_metadata(0)
+						if m is String and (DirAccess.dir_exists_absolute(m) or FileAccess.file_exists(m)):
+							for y : int in x.item_count:
+								var path : Variant = x.get_item_metadata(y)
+								if path is String:
+									if _buffer.has(path):
+										x.set_item_icon_modulate(y, _buffer[path])
+									elif path.get_extension().is_empty():
+										var tmp : String = path.path_join("")
+										if _buffer.has(tmp):
+											x.set_item_icon_modulate(y, _buffer[tmp])
+										else:
+											path = path.substr(0, path.rfind("/", path.length()-2)).path_join("")
+											if _buffer.has(path):
+												x.set_item_icon_modulate(y, _buffer[path])
+						elif m is Dictionary and m.has("path"):
+							for y : int in x.item_count:
+								var data : Variant = x.get_item_metadata(y)
+								if data is Dictionary and data.has("path"):
+									var path : Variant = data["path"]
+									if path is String:
+										if _buffer.has(path):
+											x.set_item_icon_modulate(y, _buffer[path])
+										elif path.get_extension().is_empty():
+											var tmp : String = path.path_join("")
+											if _buffer.has(tmp):
+												x.set_item_icon_modulate(y, _buffer[tmp])
+											else:
+												path = path.substr(0, path.rfind("/", path.length()-2)).path_join("")
+												if _buffer.has(path):
+													x.set_item_icon_modulate(y, _buffer[path])
+						else:
+							if x is Control:
+								if x.draw.is_connected(_update_draw):
+									x.draw.disconnect(_update_draw)
 
 func _is_tabby(tree : Tree, root : TreeItem) -> bool:
 	var meta : Variant = root.get_metadata(0)
@@ -309,6 +347,10 @@ func _ready() -> void:
 	
 func _on_child(n : Node) -> void:
 	if n is Tree:
+		if !_ref_buffer.has(n):
+			_ref_buffer[n] = null
+			_def_update()
+	if n is ItemList:
 		if !_ref_buffer.has(n):
 			_ref_buffer[n] = null
 			_def_update()

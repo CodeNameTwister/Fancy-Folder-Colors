@@ -1,0 +1,9 @@
+[DAT]
+
+PTH={
+"res://addons/": Color(0.671875, 0.233622, 0.233622, 1),
+"res://addons/_Godot-IDE_/": Color(0.0482762, 0.864583, 0.686016, 1),
+"res://addons/_Godot-IDE_/plugins/fancy_filters_script/": Color(0.19095, 0.703125, 0.334999, 1),
+"res://addons/fancy_folder_colors/": Color(0.117069, 0.640625, 0.231596, 1),
+"res://my_workflow/": Color(0.0174492, 0.279224, 0.458333, 1)
+}
