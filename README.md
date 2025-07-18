@@ -10,6 +10,9 @@ Allows you to choose a custom color for folders. *(also works with files)*
 # Preview
 ![image](images/img0.png)
 
+### Open File
+![image1](images/img1.png)
+
 # How Work
 In the godot file system, press RMB (right click) on any folder/file you want to **colorize** and select **Custom Color** from the menu.
 
